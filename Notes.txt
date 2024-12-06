@@ -1,0 +1,18 @@
+Creating a route:
+
+  we type in the terminal
+    nest g module <module name> creates the folder with the module file
+      in the module we need to add the controllers and providers both empty arrays to the @Module!
+    nest g controller<name of route> (where we define the endpoints)
+    nest g service <name of service> (where the main logic is)
+
+
+Controller
+
+  🔸 Controllers: Where you define the endpoints (like GET /users or POST /users).
+  🔸 Services: Where the main logic goes (business logic, database operations, etc.) provider is the services
+  🔸 Modules: These tie everything together.
+      -A module organizes controllers and services into logical units.
+      -You define a UsersModule where you register the UsersController and UsersService
+
+
