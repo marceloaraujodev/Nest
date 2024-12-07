@@ -1,30 +1,26 @@
 import { Injectable } from '@nestjs/common';
-
-interface User{
-  id: number,
-  username: string,
-  email: string,
-  role: 'INTERN' | 'ENGINEER' | 'ADMIN'
-}
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
+  private users = [
     {
       "id": 1,
-      "username": "john",
+      "name": "john",
       "email": "john@example.com",
       "role": "ADMIN"
     },
     {
       "id": 2,
-      "username": "paul",
+      "name": "paul",
       "email": "paul@example.com",
       "role": "INTERN"
     },
     {
       "id": 3,
-      "username": "saul",
+      "name": "saul",
       "email": "saul@example.com",
       "role": "ENGINEER"
     }
@@ -33,32 +29,38 @@ export class UsersService {
   // filter users based on role, if role is not provided, returns all users
   findAll(role?: 'INTERN' | 'ENGINEER' | 'ADMIN'): {} {
     if(role){
-      return this.users.filter(user => user.role === role) // referes to the private users above
+      const rolesArray = this.users.filter(user => user.role === role) // referes to the private users above
+      if(rolesArray.length === 0) throw new NotFoundException(`User Role ${role} not found`)
+        return rolesArray; 
     }
     return this.users;
   }
 
   findOne(id: number): any {
-    return this.users.find(user => user.id === id);
+    const user = this.users.find(user => user.id === id);
+
+    if(!user) throw new NotFoundException('User not found');  // if user not found, throw a not found exception
+    
+    return user;
   }
 
-  create(user: {username: string, email: string, role: 'INTERN' | 'ENGINEER' | 'ADMIN'})  {
+  create(createUserDto: CreateUserDto)  {
 
     const usersByHighestId = [...this.users].sort((a, b) => b.id - a.id);
-    // constructu the user to be updated and push it to the users array
+    // construct the user to be updated and push it to the users array
     const newUser = {
       id: usersByHighestId[0].id + 1, // just to generate a id
-      ...user
+      ...createUserDto
     }
     this.users.push(newUser);
     return newUser;
   }
 
   // here the updated user is what we receive in the body for the post request
-  updateOne(id: number, updatedUser: { username?: string, email?: string, role?: 'INTERN' | 'ENGINEER' | 'ADMIN'}){
+  updateOne(id: number, updateUserDto: UpdateUserDto){
     this.users = this.users.map(user => {
       if(user.id === id){
-        return {...user,...updatedUser} // spread all the users props and merges the props from user and updatedUser
+        return {...user,...updateUserDto} // spread all the users props and merges the props from user and updatedUser
       }
       return user;
     })
