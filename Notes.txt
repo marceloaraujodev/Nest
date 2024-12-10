@@ -1,34 +1,185 @@
-Service -> Logic  | also is kind of the provider
-Controller -> Route Handlers | handles incoming HTTP requests,
-Modules -> Organizer
+NESTJS
 
-Creating a route:
+  Service -> Logic  | also is kind of the provider
+  Controller -> Route Handlers | handles incoming HTTP requests,
+  Modules -> Organizer
 
-  we type in the terminal
-    nest g module <module name> creates the folder with the module file
-      in the module we need to add the controllers and providers both empty arrays to the @Module!
-    nest g controller<name of route> (where we define the endpoints)
-    nest g service <name of service> (where the main logic is)
+  Creating a route:
+
+    we type in the terminal
+      nest g module <module name> creates the folder with the module file
+        in the module we need to add the controllers and providers both empty arrays to the @Module!
+      nest g controller<name of route> (where we define the endpoints)
+      nest g service <name of service> (where the main logic is)
+
+  Controller
+
+    🔸 Controllers: Where you define the endpoints (like GET /users or POST /users).
+    🔸 Services: Where the main logic goes (business logic, database operations, etc.) provider is the services
+    🔸 Modules: These tie everything together.
+        -A module organizes controllers and services into logical units.
+        -You define a UsersModule where you register the UsersController and UsersService
+
+  Decorators:
+
+    Decorators are special functions that allow you to add metadata to classes, methods, properties, or parameters.
 
 
-Controller
 
-  🔸 Controllers: Where you define the endpoints (like GET /users or POST /users).
-  🔸 Services: Where the main logic goes (business logic, database operations, etc.) provider is the services
-  🔸 Modules: These tie everything together.
-      -A module organizes controllers and services into logical units.
-      -You define a UsersModule where you register the UsersController and UsersService
+    Types of Decorators in NestJS:
+
+      🔸Class Decorators: Add metadata to a class.
+
+        Examples: @Controller(), @Injectable(), @Module().
+        Usage: Mark a class as a controller, service, or module.
+          @Controller('users')
+          export class UsersController {}
+
+      🔸Method Decorators: Add metadata to methods.
+
+        Examples: @Get(), @Post(), @Put(), @Delete().
+        Usage: Define routes in controllers or handle specific behaviors.
+
+          @Get('profile')
+          getProfile() {
+            return 'User Profile';
+          }
+
+      🔸Property Decorators: Add metadata to properties.
+
+          Examples: @Inject(), @Config().
+          Usage: Handle dependency injection or provide configuration values.
+
+          @Inject('DATABASE_SERVICE')
+          private readonly databaseService: DatabaseService;
+
+      🔸Parameter Decorators: Add metadata to method parameters.
+
+          Examples: @Body(), @Query(), @Param(), @Req().
+          Usage: Extract values from a request (e.g., body, query, route parameters).
+
+          @Post()
+          createUser(@Body() createUserDto: CreateUserDto) {
+            return this.userService.create(createUserDto);
+          }
+    
+      Custom Method would fit into parameters decorators
+      🔸@Global():
+         will make it available everywhere however its not a good design choice
+
+  Creating a REST API quickly with NestJS:
+
+    In the terminal type:
+      nest g resource employees | employees is the name you give to the API
+      pick the api type REST if you want to use REST
+      it will ask if you want to automatically create CRUD entry points
+      usually you will import the database module in your newly created module. like this:
+        import { DatabaseModule } from 'src/database/database.module';
+
+        @Module
+          imports: [DatabaseModule],
+
+       This will make the newly created module have access to your database
+
+      The command will give you those options also for other types of api
+        REST API 
+        GraphQL (code first)
+        GraphQL (schema first)
+        Microservice (non-HTTP)
+        WebSockets
+
+  Global prefix /v1/... 
+
+    This is added in the main.ts file
+
+    const app = await NestFactory.create(AppModule);
+    app.setGlobalPrefix('v1');
+
+  CORS 
+   This is added in the main.ts file
+
+    app.enanbleCors();   // enable cors for everyone 
+    
+    if using with configured cors
+
+      const app = await NestFactory.create(AppModule, { cors: true });
+
+  Rate Limiting:
+
+    This is added in the app.module.ts file
+    add dependency:
+      npm i --save @nestjs/throttler
+
+      you can add objects with the configuration for the time that you want to limit.
+
+      import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+      import { APP_GUARD } from '@nestjs/core';
+
+      @Module
+      *imports: [
+          UsersModule,
+          DatabaseModule,
+          EmployeesModule,
+          ThrottlerModule.forRoot([
+            // max 3 request per second and max of 100 in one min.
+            {
+              name: 'short',
+              ttl: 1000,
+              limit: 3,
+            },
+            {
+              name: 'long',
+              ttl: 60000,
+              limit: 100,
+            },
+          ]),
+        ],
+
+      To use rate limit in a route:
+        import { Throttle, SkipThrottle } from '@nestjs/throttler';
+
+        🔸skip throttling for the entire controller, has to be on top of the 
+          @SkipThrottle() 
+          @Controller
+
+
+        🔸default is true, so line below would rate limit this Get request
+          @SkipThrottle({ default: false}) 
+          @Get()
+          findAll(@Query('role') role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
+            return this.employeesService.findAll(role);
+          }
+
+        🔸this would overwrite default from app.module
+          @Throttle({ short: { ttl: 1000, limit: 1}}) 
+          @Get(:id)
+
+          * short was the name given in the set up
+
+  Logger
 
 
 Prisma
+
+  Prisma is an ORM (Object relational mappings) tool for sql databases  It allows you to interact with a relational database in a more developer-friendly way, using JavaScript/TypeScript code rather than writing raw SQL queries. Like a mongoose for mongoDB
 
   To install
     npm i Prisma
     npx prisma init
   
   To run
-    npx prisma migrate dev --name init
+    npx prisma migrate dev --name init | here the name value is where init is!
     npx prisma generate
 
   To run a change
     npx prisma migrate dev --name name_change
+
+  Finding Types:
+
+    Prisma generates types: After you run prisma generate or run migrations, Prisma generates a Prisma namespace that contains types for each model. In this case where employees is the folder name/model:
+
+      You can also starte typing to get the suggestions Prisma. then would suggest the types.
+
+      Prisma.EmployeeCreateInput is the type for creating a new Employee in the database.
+      Prisma.EmployeeUpdateInput would be the type for updating an employee.
+      Prisma.EmployeeWhereInput would be the type for querying employees.

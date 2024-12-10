@@ -6,24 +6,24 @@ import { NotFoundException } from '@nestjs/common';
 @Injectable()
 export class UsersService {
   private users = [
-    {
-      "id": 1,
-      "name": "john",
-      "email": "john@example.com",
-      "role": "ADMIN"
-    },
-    {
-      "id": 2,
-      "name": "paul",
-      "email": "paul@example.com",
-      "role": "INTERN"
-    },
-    {
-      "id": 3,
-      "name": "saul",
-      "email": "saul@example.com",
-      "role": "ENGINEER"
-    }
+    // {
+    //   "id": 1,
+    //   "name": "john",
+    //   "email": "john@example.com",
+    //   "role": "ADMIN"
+    // },
+    // {
+    //   "id": 2,
+    //   "name": "paul",
+    //   "email": "paul@example.com",
+    //   "role": "INTERN"
+    // },
+    // {
+    //   "id": 3,
+    //   "name": "saul",
+    //   "email": "saul@example.com",
+    //   "role": "ENGINEER"
+    // }
   ]
 
   // filter users based on role, if role is not provided, returns all users
